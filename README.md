@@ -1,6 +1,18 @@
 # Kubernetes probes 
 
-FILL IN
+Developers write great applications. But even the best applications are not always able to handle requests.
+
+* If an application is just launched it might need to perform some initialization routines before it is ready to process requests.
+* An application might be in a state where it can not continue due to external blocking factors such as database connections that have dropped, filesystems that have filled up etc.
+* An application might be shutting down. This could be because of an update or of a scaling action.
+
+Unless we help Kubernetes with readiness probes it will not know about the state of an application and assume that the app is up.
+
+And at the same time even the best applications might run into situations that require the an app to restart. This could be the case if an application has problems recovering from a lost connection. Of if some internal routines generate impressive stacktraces that are unrecoverable.
+
+For these situations we have liveness probes.
+
+The readiness probe is also very important when doing rolling upgrades of applications. It will delay the removal of an old version of a pod as long as the new version is not ready.
 
 ## Prequisites
 
@@ -13,6 +25,11 @@ In order to experience the behaviour of resource limits the following setup is e
 > Create the minikube cluster if you haven't done it yet. Once it is started open a terminal and enter the command `kubectl get events --watch` to receive constant updates on what is happening inside the cluster.
 
 ## Probe sequence
+
+Liveness probes and readiness probes have been around for quite some time. They have one short coming and that is how to deal with slow starting pods. 
+For slow starting pods the startup probe is introduced. It requires Kubernetes version 1.18 or above.
+The startup probe waits for a condition to occur and then passes on control to the readiness and liveness probes.
+
 
 ``` text
                     |     
