@@ -255,7 +255,7 @@ Endpoints:         172.17.0.2:80
 ... omitted
 ```
 
-If you wait a while you'll notice that the pods restart every 150 seconds and that after a restart the readiness probe of the first pod failes again.
+If you wait a while you'll notice that the pods restart every 150 seconds and that after a restart the readiness probe of the first pod fails again.
 
 After restarting the file that affects the readiness probes is gone causing the readiness probe to fail again.
 
