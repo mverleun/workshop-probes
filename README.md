@@ -1,4 +1,4 @@
-# Kubernetes probes 
+# Kubernetes probes
 
 Developers write great applications. But even the best applications are not always able to handle requests.
 
@@ -18,18 +18,17 @@ The readiness probe is also very important when doing rolling upgrades of applic
 
 In order to experience the behaviour of resource limits the following setup is expected:
 
-- minikube running local with 4 Cores and 8GiB of memory. (`minikube start --memory=8G --cpus=4`)
-- minikube metrics-server enabled (`minikube addons enable metrics-server`)
-- network connectivity to download images
+* minikube running local with 4 Cores and 8GiB of memory. (`minikube start --memory=8G --cpus=4`)
+* minikube metrics-server enabled (`minikube addons enable metrics-server`)
+* network connectivity to download images
 
 > Create the minikube cluster if you haven't done it yet. Once it is started open a terminal and enter the command `kubectl get events --watch` to receive constant updates on what is happening inside the cluster.
 
 ## Probe sequence
 
-Liveness probes and readiness probes have been around for quite some time. They have one short coming and that is how to deal with slow starting pods. 
+Liveness probes and readiness probes have been around for quite some time. They have one short coming and that is how to deal with slow starting pods.
 For slow starting pods the startup probe is introduced. It requires Kubernetes version 1.18 or above.
 The startup probe waits for a condition to occur and then passes on control to the readiness and liveness probes.
-
 
 ``` text
                     |     
@@ -109,16 +108,16 @@ Events:
   Normal  Type    4m20s  service-controller  ClusterIP -> LoadBalancer
 ```
 
-There are no endpoints active yet. You can check this by opening the url http://localhost:8080/ with a browser, postman, insomnia, curl or wget after opening a port forward. Note the ampersand at the end.
+There are no endpoints active yet. You can check this by opening the url <http://localhost:8080/> with a browser, postman, insomnia, curl or wget after opening a port forward. Note the ampersand at the end.
 
-> Some browsers will automatically redirect you from a http to a https session. If that happens try to navigate to http://127.0.0.1:8080/ instead.
+> Some browsers will automatically redirect you from a http to a https session. If that happens try to navigate to <http://127.0.0.1:8080/> instead.
 
 ```bash
 # Port forward first
 kubectl port-forward service/apache 8080 &
 
 
-❯ curl http://localhost:8080/
+❯ curl <http://localhost:8080/>
 curl: (7) Failed to connect to localhost port 8080: Connection refused
 ```
 
@@ -159,7 +158,7 @@ Handling connection for 8080
 <html><body><h1>It works!</h1></body></html>
 ```
 
-> Due to the way the port-forwarding works we will not rely on it for futher testing. 
+> Due to the way the port-forwarding works we will not rely on it for futher testing.
 
 Cleanup:
 
@@ -170,7 +169,7 @@ deployment.apps "apache" deleted
 
 ## A deployment with probes
 
-Again deploy 3 pods. This time with probes. 
+Again deploy 3 pods. This time with probes.
 
 Before continuing enter the following command in a seperate terminal to see all the events, keep this running:
 
@@ -187,7 +186,7 @@ LAST SEEN   TYPE      REASON                         OBJECT                     
 ... omitted
 ```
 
-Have a look at the service again. If there are endpoints the cleanup of the deployment is not completed yet. 
+Have a look at the service again. If there are endpoints the cleanup of the deployment is not completed yet.
 
 ``` bash
 ❯ kubectl describe service apache
@@ -283,7 +282,7 @@ Endpoints:
 
 Let's fix it, one pod at a time:
 
-```
+``` bash
 ❯ kubectl exec apache-c4fb9756-6bgmk -- touch /usr/local/apache2/htdocs/readiness
 
 ❯ kubectl describe service apache
@@ -303,7 +302,7 @@ Endpoints:         172.17.0.2:80,172.17.0.4:80
 
 That's two out of three...
 
-Cleanup: 
+Cleanup:
 
 ``` bash
 ❯ kubectl delete -f 03-webserver-with-probes.yaml
@@ -319,7 +318,7 @@ Let's use scripts... We deploy a pod which gets two script from a configMap. By 
 
 In a seperate terminal enter a command:
 
-```
+``` bash
 kubectl get pods -w
 NAME                      READY   STATUS    RESTARTS   AGE
 probes-76d848bdbb-4ddq2   1/1     Running   0          98s
@@ -339,7 +338,7 @@ Your pod name is different. As you can see this pod is in a not ready state and 
 
 Make the pod ready again:
 
-```
+``` bash
 ❯ kubectl exec probes-76d848bdbb-4ddq2 -- rm /tmp/notready
 ```
 
