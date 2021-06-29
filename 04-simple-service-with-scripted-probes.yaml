@@ -1,0 +1,157 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: probes
+data:
+  readinessprobe.sh: |-
+    #!/bin/bash
+
+    # This script is used to check the readiness of a POD.
+    # If a pod works fine the script exits with exit code 0
+    # otherwise, a non exit code is used.
+    #
+    # Add the following (or similar) code to the helm chart
+    # files in order to use it.
+    #
+    #   readinessProbe:
+    #     periodSeconds: 3
+    #     successThreshold: 1
+    #     failureThreshold: 2
+    #     initialDelaySeconds: 30
+    #     timeoutSeconds: 5
+    #     exec:
+    #      command:
+    #         - /bin/bash
+    #         - /probes/readinessprobe.sh
+    #
+    # Consider various tests such as availability of certain filesystems, environment variables
+    # or connectivity/responses from/to (web)servers.
+
+    function probe_log() {
+        echo "$( date +%D-%T ): ${1}" > /proc/1/fd/1
+        exit 1
+        }
+    #
+    # Debug checks:
+    #
+    # Report a NOT READY status if the file /tmp/notready does exist:
+    cat /tmp/notready > /dev/null 2>&1 && probe_log "File /tmp/notready exists"
+
+    # Report A NOT READY status if the file /etc/passwd does NOT exist:
+    cat /etc/passwd > /dev/null 2>&1 || probe_log "File /etc/passwd does not exist"
+
+    # Check if the following filesystem exist.
+    df /dev > /dev/null 2>&1 || probe_log "Filesystem /dev not found"
+
+    # If we reached this point we can assume that everything is fine.
+    # Exit with an okay status
+    exit 0
+  livenessprobe.sh: |-
+    #!/bin/bash
+
+    # This script is used to check the readiness of a POD.
+    # If a pod works fine the script exits with exit code 0
+    # otherwise, a non exit code is used.
+    #
+    # Add the following (or similar) code to the helm chart
+    # files in order to use it.
+    #
+    #   livenessProbe:
+    #     periodSeconds: 1
+    #     successThreshold: 1
+    #     failureThreshold: 2
+    #     initialDelaySeconds: 30
+    #     timeoutSeconds: 5
+    #     exec:
+    #       command:
+    #       - /bin/bash
+    #       - /probes/livenessprobe.sh
+    #
+    # Consider various tests such as availability of certain filesystems, environment variables
+    # or connectivity/responses from/to (web)servers.
+
+    function probe_log() {
+        echo "$( date +%D-%T ): ${1}" > /proc/1/fd/1
+        exit 1
+        }
+    #
+    # Debug checks:
+    #
+    # Report a NOT ALIVE status if the file /tmp/notready does exist:
+    cat /tmp/notalive > /dev/null 2>&1 && probe_log "File /tmp/notalive exists"
+
+    # Check if the following filesystem exist.
+    df /dev > /dev/null 2>&1 || probe_log "Filesystem /dev not found"
+
+    # If we reached this point we can assume that everything is fine.
+    # Exit with an okay status
+    exit 0
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: probes
+  name: probes
+spec:
+  ports:
+  - name: web
+    port: 8080
+    protocol: TCP
+    targetPort: 9876
+  selector:
+    app: probes
+  type: ClusterIP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: probes
+  name: probes
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: probes
+  template:
+    metadata:
+      labels:
+        app: probes
+    spec:
+      containers:
+      - image: mhausenblas/simpleservice:0.5.0
+      # https://github.com/mhausenblas/simpleservice
+        name: simpleservice
+        resources:
+          limits:
+            memory: "500Mi"
+            cpu: 200m
+        livenessProbe:
+          periodSeconds: 1
+          successThreshold: 1
+          failureThreshold: 2
+          initialDelaySeconds: 5
+          timeoutSeconds: 5
+          exec:
+            command:
+              - /bin/bash
+              - /probes/livenessprobe.sh
+        readinessProbe:
+          periodSeconds: 3
+          successThreshold: 1
+          failureThreshold: 2
+          initialDelaySeconds: 5
+          timeoutSeconds: 5
+          exec:
+           command:
+              - /bin/bash
+              - /probes/readinessprobe.sh
+        volumeMounts:
+        - name: probes
+          mountPath: "/probes"
+          readOnly: true
+      volumes:
+        - name: probes
+          configMap:
+            name: probes
