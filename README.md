@@ -71,15 +71,6 @@ Deploy the service definition. This definition will listen on port 8080 and forw
 service/apache created
 ```
 
-In a seperate terminal create a tunnel into the minikube cluster:
-
-``` bash
-❯ minikube tunnel
-🏃  Starting tunnel for service apache.
-```
-
-Keep this session running!
-
 Have a closer look at this service and notice the endpoints. Do this from another terminal:
 
 ``` bash
